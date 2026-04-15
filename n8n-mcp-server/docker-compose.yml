@@ -1,0 +1,19 @@
+services:
+  n8n-mcp:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - N8N_BASE_URL=${N8N_BASE_URL}
+      - N8N_API_KEY=${N8N_API_KEY}
+      - MCP_TRANSPORT=sse
+      - MCP_PORT=3000
+      - OAUTH_USER_EMAIL=${OAUTH_USER_EMAIL:-}
+      - OAUTH_USER_PASSWORD=${OAUTH_USER_PASSWORD:-}
+      - OAUTH_JWT_SECRET=${OAUTH_JWT_SECRET:-}
+      - OAUTH_BASE_URL=${OAUTH_BASE_URL:-}
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3

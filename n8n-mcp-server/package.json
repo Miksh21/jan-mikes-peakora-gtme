@@ -1,0 +1,27 @@
+{
+  "name": "n8n-mcp-server",
+  "version": "1.0.0",
+  "description": "Model Context Protocol server for full n8n automation platform control",
+  "main": "build/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "start": "node build/index.js",
+    "dev": "node --import tsx src/index.ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.7.1",
+    "dotenv": "^16.4.7",
+    "jsonwebtoken": "^9.0.2",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/jsonwebtoken": "^9.0.6",
+    "@types/node": "^20.10.5",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.2"
+  },
+  "keywords": ["n8n", "mcp", "model-context-protocol", "automation", "workflow"],
+  "author": "JanMikeš",
+  "license": "MIT"
+}

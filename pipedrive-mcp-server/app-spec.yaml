@@ -1,0 +1,29 @@
+name: pipedrive-mcp-server
+region: fra
+services:
+  - name: pipedrive-mcp
+    image:
+      registry_type: GHCR
+      registry: juhokoskela
+      repository: pipedrive-mcp-server
+      tag: main
+    instance_count: 1
+    instance_size_slug: basic-xxs
+    http_port: 3000
+    envs:
+      - key: PIPEDRIVE_API_TOKEN
+        scope: RUN_TIME
+        type: SECRET
+      - key: PIPEDRIVE_DOMAIN
+        scope: RUN_TIME
+        type: SECRET
+      - key: MCP_TRANSPORT
+        value: "sse"
+      - key: MCP_PORT
+        value: "3000"
+      - key: MCP_JWT_SECRET
+        scope: RUN_TIME
+        type: SECRET
+      - key: MCP_JWT_TOKEN
+        scope: RUN_TIME
+        type: SECRET

@@ -1,0 +1,38 @@
+name: n8n-mcp-server
+region: fra
+services:
+  - name: n8n-mcp
+    github:
+      repo: your-gh-user/n8n-mcp-server
+      branch: main
+      deploy_on_push: true
+    build_command: npm ci && npm run build
+    run_command: node build/index.js
+    instance_count: 1
+    instance_size_slug: basic-xxs
+    http_port: 3000
+    health_check:
+      http_path: /health
+    envs:
+      - key: N8N_BASE_URL
+        scope: RUN_TIME
+        type: SECRET
+      - key: N8N_API_KEY
+        scope: RUN_TIME
+        type: SECRET
+      - key: MCP_TRANSPORT
+        value: "sse"
+      - key: MCP_PORT
+        value: "3000"
+      - key: OAUTH_USER_EMAIL
+        scope: RUN_TIME
+        type: SECRET
+      - key: OAUTH_USER_PASSWORD
+        scope: RUN_TIME
+        type: SECRET
+      - key: OAUTH_JWT_SECRET
+        scope: RUN_TIME
+        type: SECRET
+      - key: OAUTH_BASE_URL
+        scope: RUN_TIME
+        type: SECRET

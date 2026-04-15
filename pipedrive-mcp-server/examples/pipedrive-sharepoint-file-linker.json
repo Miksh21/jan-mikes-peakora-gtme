@@ -1,0 +1,190 @@
+{
+  "name": "Pipedrive – SharePoint File Auto-Linker",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## SharePoint File Auto-Linker\nRuns every hour. Fetches Pipedrive recents (activities, notes, files), finds SharePoint URLs in text fields, resolves each via Microsoft Graph API, then uploads files or adds folder notes to the correct Pipedrive entity.\n\n**Env vars required:**\n- `PIPEDRIVE_API_TOKEN`\n- `PIPEDRIVE_DOMAIN`\n\n**Credential required:**\n- Microsoft Graph OAuth2 (Files.Read.All scope)",
+        "height": 200,
+        "width": 500,
+        "color": 5
+      },
+      "id": "sticky-overview",
+      "name": "Overview",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [200, 60]
+    },
+    {
+      "parameters": {
+        "content": "## Section 1: Trigger + Fetch\nScheduled hourly. Timestamp persisted in static data.\nFetches all recents since last run with safe pagination.",
+        "height": 100,
+        "width": 360,
+        "color": 5
+      },
+      "id": "sticky-section1",
+      "name": "Section 1 Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [200, 280]
+    },
+    {
+      "parameters": {
+        "content": "## Section 2: SharePoint Resolution\nEncodes SP URL → Graph API → branch on file vs folder.",
+        "height": 100,
+        "width": 360,
+        "color": 5
+      },
+      "id": "sticky-section2",
+      "name": "Section 2 Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [780, 280]
+    },
+    {
+      "parameters": {
+        "content": "⚠️ Replace credential ID below with your real Microsoft Graph OAuth2 credential ID",
+        "height": 60,
+        "width": 360,
+        "color": 1
+      },
+      "id": "sticky-cred-warning",
+      "name": "Credential Warning",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [1060, 280]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [{ "field": "hours", "hoursInterval": 1 }]
+        }
+      },
+      "id": "1",
+      "name": "Every Hour",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [200, 400]
+    },
+    {
+      "parameters": {
+        "jsCode": "// ── Fetch all Pipedrive recents since last run, extract SharePoint URLs ──\n// Timestamp persisted in workflow static data between executions.\n\nconst TOKEN  = $env.PIPEDRIVE_API_TOKEN;\nconst DOMAIN = $env.PIPEDRIVE_DOMAIN;\nconst SP_RE  = /https?:\\/\\/[a-zA-Z0-9-]+\\.sharepoint\\.com\\/[^\\s\"'<>\\])]+/gi;\n\n// ── Timestamp management ────────────────────────────────────────────\nconst staticData = $getWorkflowStaticData('global');\nconst now        = new Date();\nconst fmtDate    = d => d.toISOString().replace('T', ' ').replace(/\\.\\d{3}Z$/, '');\n\nconst since = staticData.lastRunTimestamp\n  ? fmtDate(new Date(staticData.lastRunTimestamp))\n  : fmtDate(new Date(now.getTime() - 3600_000));\n\n// ── Robust paginated fetch ───────────────────────────────────────────\nasync function pipedriveGetAll(path, params = {}) {\n  const all = [];\n  let start = 0, page = 0;\n  const MAX_PAGES = 100;\n\n  while (page < MAX_PAGES) {\n    const qs = new URLSearchParams({ api_token: TOKEN, limit: '500', start: String(start), ...params });\n    const r  = await fetch(`https://${DOMAIN}/api/v1${path}?${qs}`);\n    if (!r.ok) throw new Error(`Pipedrive ${path} failed – HTTP ${r.status}: ${await r.text()}`);\n    const body = await r.json();\n\n    if (Array.isArray(body.data)) all.push(...body.data);\n\n    const pg = body.additional_data?.pagination;\n    if (!pg || !pg.more_items_in_collection) break;\n    start = typeof pg.next_start === 'number' ? pg.next_start : start + 500;\n    page++;\n    await new Promise(res => setTimeout(res, 150)); // respect rate limit\n  }\n  return all;\n}\n\nconst allItems = await pipedriveGetAll('/recents', {\n  since_timestamp: since,\n  items: 'activity,note,file'\n});\n\n// Save timestamp after successful fetch so a downstream failure causes safe retry\nstaticData.lastRunTimestamp = now.toISOString();\n\n// ── Extract SharePoint URLs, one output item per URL ─────────────────\nconst results = [];\nfor (const item of allItems) {\n  const t = item.item_type, d = item.data || {};\n  let text = '', entityType = null, entityId = null;\n\n  if      (t === 'activity') text = [d.subject, d.note, d.description].filter(Boolean).join(' ');\n  else if (t === 'note')     text = d.content || '';\n  else if (t === 'file')     text = [d.name, d.url, d.description].filter(Boolean).join(' ');\n  else continue;\n\n  if      (d.deal_id)   { entityType = 'deal';   entityId = d.deal_id; }\n  else if (d.person_id) { entityType = 'person'; entityId = d.person_id; }\n  else if (d.org_id)    { entityType = 'org';    entityId = d.org_id; }\n  if (!entityId) continue;\n\n  for (const spUrl of [...new Set(text.match(SP_RE) || [])]) {\n    results.push({ json: { spUrl, itemType: t, itemId: d.id, entityType, entityId } });\n  }\n}\n\nreturn results;"
+      },
+      "id": "2",
+      "name": "Fetch Recents & Extract SP URLs",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [420, 400]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Base64url-encode the SharePoint URL for Graph API shares endpoint\nconst spUrl   = $json.spUrl;\nconst encoded = 'u!' + Buffer.from(spUrl).toString('base64')\n  .replace(/=/g, '').replace(/\\+/g, '-').replace(/\\//g, '_');\nreturn [{ json: { ...$json, graphSharesId: encoded } }];"
+      },
+      "id": "3",
+      "name": "Encode SP URL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [640, 400]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://graph.microsoft.com/v1.0/shares/{{ $json.graphSharesId }}/driveItem",
+        "authentication": "oAuth2Api",
+        "options": {}
+      },
+      "id": "4",
+      "name": "Graph: Resolve DriveItem",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [860, 400],
+      "credentials": {
+        "oAuth2Api": {
+          "id": "REPLACE_WITH_MSGRAPH_OAUTH2_CREDENTIAL_ID",
+          "name": "Microsoft Graph OAuth2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Merge Graph API driveItem response with original metadata from Encode SP URL.\n// $json = driveItem. Use $itemIndex to pair correctly across multiple items.\nconst ctx = $('Encode SP URL').all()[$itemIndex].json;\nreturn [{\n  json: {\n    ...$json,\n    entityType: ctx.entityType,\n    entityId:   ctx.entityId,\n    spUrl:      ctx.spUrl\n  }\n}];"
+      },
+      "id": "5",
+      "name": "Merge Context",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1080, 400]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "loose" },
+          "conditions": [
+            {
+              "id": "cond-is-file",
+              "leftValue": "={{ $json.file }}",
+              "rightValue": "",
+              "operator": { "type": "object", "operation": "exists", "singleValue": true }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "6",
+      "name": "Is a File?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1300, 400]
+    },
+    {
+      "parameters": {
+        "jsCode": "// TRUE branch – file: download from SharePoint SAS URL, upload to Pipedrive.\n// $json already has entityType/entityId merged in by 'Merge Context'.\nconst TOKEN  = $env.PIPEDRIVE_API_TOKEN;\nconst DOMAIN = $env.PIPEDRIVE_DOMAIN;\n\nconst downloadUrl = $json['@microsoft.graph.downloadUrl'];\nconst fileName    = $json.name || 'sharepoint-file';\nconst entityField = $json.entityType === 'deal'   ? 'deal_id'\n                  : $json.entityType === 'person' ? 'person_id'\n                  : 'org_id';\n\n// SAS URL is pre-authenticated — no extra headers needed\nconst fileResp = await fetch(downloadUrl);\nif (!fileResp.ok) throw new Error(`SP download failed: HTTP ${fileResp.status}`);\nconst fileBuffer = Buffer.from(await fileResp.arrayBuffer());\n\nconst form = new FormData();\nform.append('file', new Blob([fileBuffer]), fileName);\nform.append(entityField, String($json.entityId));\n\nconst up = await fetch(\n  `https://${DOMAIN}/api/v1/files?api_token=${encodeURIComponent(TOKEN)}`,\n  { method: 'POST', body: form }\n);\nif (!up.ok) throw new Error(`Pipedrive file upload failed: HTTP ${up.status}`);\nconst result = await up.json();\nreturn [{ json: result }];"
+      },
+      "id": "7",
+      "name": "Download & Upload to Pipedrive",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1520, 280]
+    },
+    {
+      "parameters": {
+        "jsCode": "// FALSE branch – folder: add a Pipedrive note with the folder link.\n// $json already has entityType/entityId merged in by 'Merge Context'.\nconst TOKEN  = $env.PIPEDRIVE_API_TOKEN;\nconst DOMAIN = $env.PIPEDRIVE_DOMAIN;\n\nconst entityField = $json.entityType === 'deal'   ? 'deal_id'\n                  : $json.entityType === 'person' ? 'person_id'\n                  : 'org_id';\n\nconst content = `📁 SharePoint folder linked automatically\\n\\n`\n  + `Name: ${$json.name || 'SharePoint Folder'}\\n`\n  + `URL: ${$json.webUrl || $json.spUrl}\\n`\n  + `(Added by n8n SharePoint Auto-Linker)`;\n\nconst r = await fetch(\n  `https://${DOMAIN}/api/v1/notes?api_token=${encodeURIComponent(TOKEN)}`,\n  {\n    method: 'POST',\n    headers: { 'Content-Type': 'application/json' },\n    body: JSON.stringify({ content, [$json.entityField]: $json.entityId })\n  }\n);\nif (!r.ok) throw new Error(`Pipedrive note creation failed: HTTP ${r.status}`);\nconst result = await r.json();\nreturn [{ json: result }];"
+      },
+      "id": "8",
+      "name": "Add Folder Note to Pipedrive",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1520, 520]
+    }
+  ],
+  "connections": {
+    "Every Hour": {
+      "main": [[{ "node": "Fetch Recents & Extract SP URLs", "type": "main", "index": 0 }]]
+    },
+    "Fetch Recents & Extract SP URLs": {
+      "main": [[{ "node": "Encode SP URL", "type": "main", "index": 0 }]]
+    },
+    "Encode SP URL": {
+      "main": [[{ "node": "Graph: Resolve DriveItem", "type": "main", "index": 0 }]]
+    },
+    "Graph: Resolve DriveItem": {
+      "main": [[{ "node": "Merge Context", "type": "main", "index": 0 }]]
+    },
+    "Merge Context": {
+      "main": [[{ "node": "Is a File?", "type": "main", "index": 0 }]]
+    },
+    "Is a File?": {
+      "main": [
+        [{ "node": "Download & Upload to Pipedrive", "type": "main", "index": 0 }],
+        [{ "node": "Add Folder Note to Pipedrive",   "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "staticData": null,
+  "pinData": {}
+}
