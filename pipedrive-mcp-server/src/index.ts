@@ -425,8 +425,11 @@ server.tool(
         limit_applied: limit
       };
 
-      // Summarize deals to avoid massive responses but include notes and booking details
-      const bookingFieldKey = "8f4b27fbd9dfc70d2296f23ce76987051ad7324e";
+      // Summarize deals to avoid massive responses but include notes and booking details.
+      // The booking field is a per-account Pipedrive custom field hash — must be
+      // supplied via PIPEDRIVE_BOOKING_FIELD_KEY. If unset, the field is simply
+      // omitted rather than hardcoded to a single client's schema.
+      const bookingFieldKey = process.env.PIPEDRIVE_BOOKING_FIELD_KEY;
       const summarizedDeals = filteredDeals.map((deal: any) => ({
         id: deal.id,
         title: deal.title,
@@ -446,8 +449,8 @@ server.tool(
         notes_count: deal.notes_count || 0,
         // Include recent notes if available
         notes: deal.notes || [],
-        // Include custom booking details field
-        booking_details: deal[bookingFieldKey] || null
+        // Include custom booking details field only if a field key is configured
+        booking_details: bookingFieldKey ? (deal[bookingFieldKey] || null) : null
       }));
 
       return {
@@ -528,9 +531,10 @@ server.tool(
         const dealResponse = await dealsApi.getDeal(dealId);
         const deal = dealResponse.data;
 
-        // Extract custom booking field
-        const bookingFieldKey = "8f4b27fbd9dfc70d2296f23ce76987051ad7324e";
-        if (deal && deal[bookingFieldKey]) {
+        // Extract custom booking field — requires PIPEDRIVE_BOOKING_FIELD_KEY env var
+        // (account-specific custom field hash). Gracefully skipped if unset.
+        const bookingFieldKey = process.env.PIPEDRIVE_BOOKING_FIELD_KEY;
+        if (bookingFieldKey && deal && deal[bookingFieldKey]) {
           result.booking_details = deal[bookingFieldKey];
         }
       } catch (dealError) {

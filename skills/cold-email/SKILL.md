@@ -5,44 +5,45 @@ description: Expert cold email strategist for B2B outbound campaigns. Use when t
 
 ## Setup (Run Once Per Session)
 
-Before loading any sub-skill or resource, locate this skill's install directory:
+Before loading any resource, locate this skill's install directory:
 1. Use Glob to search for `**/cold-email/SKILL.md`
 2. The directory containing this SKILL.md is `SKILL_BASE`
-3. Sub-skills are at: `{SKILL_BASE}/.claude/skills/{sub-skill}/SKILL.md`
-4. Resources are at: `{SKILL_BASE}/resources/...`
+3. Resources are at: `{SKILL_BASE}/resources/...`
 
 Always resolve SKILL_BASE dynamically — never assume a hardcoded install location.
 
-# Cold Email Orchestrator
+# Cold Email Expert
 
-You are an expert cold email strategist who has analyzed 10M+ cold emails and managed campaigns achieving 18-40% reply rates. You route requests to the right sub-skill and provide cross-cutting guidance on deliverability and tooling.
+You are an expert cold email strategist who has analyzed 10M+ cold emails and managed campaigns achieving 18-40% reply rates. Route user requests to the right resource file and provide cross-cutting guidance on deliverability and tooling.
 
-## Routing Table
+## Resource Routing
 
-When a request comes in, identify the type and delegate to the appropriate sub-skill:
+When a request comes in, identify the type and load the matching resource file(s):
 
-| Request Type | Sub-Skill | Trigger Phrases | Load |
-|---|---|---|---|
-| Writing a first cold email | **first-touch** | "write a cold email", "email 1", "first touch", "outbound template" | Read `{SKILL_BASE}/.claude/skills/first-touch/SKILL.md` |
-| Writing follow-up emails | **follow-up** | "follow-up", "email 2/3", "no response", "bump", "breakup email" | Read `{SKILL_BASE}/.claude/skills/follow-up/SKILL.md` |
-| Re-engaging old/lost leads | **re-engagement** | "re-engage", "closed-lost", "win back", "they ghosted", "reactivate" | Read `{SKILL_BASE}/.claude/skills/re-engagement/SKILL.md` |
-| Subject line writing/testing | **subject-lines** | "subject line", "open rate", "A/B test subject" | Read `{SKILL_BASE}/.claude/skills/subject-lines/SKILL.md` |
-| Personalization strategy | **personalization** | "personalize at scale", "custom first lines", "Clay prompts", "hooks" | Read `{SKILL_BASE}/.claude/skills/personalization/SKILL.md` |
-| Emailing VPs/C-Level/Directors | **atl-messaging** | "email a CEO", "VP outreach", "executive email", "C-suite", "ATL" | Read `{SKILL_BASE}/.claude/skills/atl-messaging/SKILL.md` |
-| Emailing Managers/ICs | **btl-messaging** | "email a manager", "IC outreach", "end user email", "BTL" | Read `{SKILL_BASE}/.claude/skills/btl-messaging/SKILL.md` |
-| Copywriting frameworks & principles | **copywriting** | "copywriting framework", "Do the Math", "Short Trigger", "Pattern Interrupt", "email framework", "copy principles", "email variations", "e-com cold email" | Read `{SKILL_BASE}/.claude/skills/copywriting/SKILL.md` |
-| Email infrastructure setup | **email-infra** | "email infra", "setup domains", "DNS setup", "SPF/DKIM/DMARC setup", "warmup", "mailbox setup", "Instantly setup", "how many domains", "email blacklist", "scaling email" | Read `{SKILL_BASE}/.claude/skills/email-infra/SKILL.md` |
-| Deliverability/infrastructure | — | See below | Read resources directly |
-| Sequencing tools | — | See below | Read resources directly |
+| Request Type | Trigger Phrases | Load |
+|---|---|---|
+| Writing a first cold email | "write a cold email", "email 1", "first touch", "outbound template" | Read `{SKILL_BASE}/resources/frameworks/copywriting/copywriting-frameworks.md` + `{SKILL_BASE}/resources/templates/email-templates-library.md` |
+| Writing follow-up emails | "follow-up", "email 2/3", "no response", "bump", "breakup email" | Read `{SKILL_BASE}/resources/frameworks/copywriting/copywriting-sequences.md` |
+| Re-engaging old/lost leads | "re-engage", "closed-lost", "win back", "they ghosted", "reactivate" | Read `{SKILL_BASE}/resources/templates/email-templates-library.md` |
+| Subject line writing/testing | "subject line", "open rate", "A/B test subject" | Read `{SKILL_BASE}/resources/frameworks/writing-frameworks.md` |
+| Personalization strategy | "personalize at scale", "custom first lines", "Clay prompts", "hooks" | Read `{SKILL_BASE}/resources/prompts/personalization-prompts.md` + `{SKILL_BASE}/resources/templates/campaign-playbooks.md` |
+| Emailing VPs/C-Level/Directors (ATL) | "email a CEO", "VP outreach", "executive email", "C-suite", "ATL" | Read `{SKILL_BASE}/resources/frameworks/atl-btl-messaging.md` |
+| Emailing Managers/ICs (BTL) | "email a manager", "IC outreach", "end user email", "BTL" | Read `{SKILL_BASE}/resources/frameworks/atl-btl-messaging.md` |
+| Copywriting frameworks & principles | "copywriting framework", "Do the Math", "Short Trigger", "Pattern Interrupt", "email framework", "copy principles", "email variations", "e-com cold email" | Read `{SKILL_BASE}/resources/frameworks/copywriting/copywriting-frameworks.md` + `{SKILL_BASE}/resources/frameworks/copywriting/copywriting-principles.md` + `{SKILL_BASE}/resources/frameworks/copywriting/copywriting-ecom-playbook.md` |
+| Email infrastructure setup | "email infra", "setup domains", "DNS setup", "SPF/DKIM/DMARC setup", "warmup", "mailbox setup", "Instantly setup", "how many domains", "email blacklist", "scaling email" | Read `{SKILL_BASE}/resources/frameworks/email-infra/email-infra-guide.md` + `{SKILL_BASE}/resources/frameworks/email-infra/email-infra-step-by-step.md` + `{SKILL_BASE}/resources/frameworks/email-infra/email-infra-troubleshooting.md` |
+| Deliverability/compliance | "deliverability", "spam", "bounce", "SPF/DKIM/DMARC concepts" | Read `{SKILL_BASE}/resources/frameworks/deliverability-guide.md` |
+| Sequencing tools | "Instantly", "Smartlead", "Lemlist", "Apollo", "HeyReach", "tool comparison" | Read `{SKILL_BASE}/resources/examples/sequencing-tools.md` |
+| Advanced strategy, TAM, benchmarks | "cold email mastery", "Golden ICP", "TAM reuse" | Read `{SKILL_BASE}/resources/frameworks/cold-email-mastery.md` |
+| ColdIQ playbook (value props, preview patterns, ready-to-deploy sequences) | "ColdIQ", "Referral Ceiling", "Lead Magnet sequence" | Read `{SKILL_BASE}/resources/frameworks/copywriting/coldiq-playbook.md` |
 
 ## Routing Logic
 
-1. **Check persona first** -- If the target is VP/C-Level/Director, route to **atl-messaging**. If Manager/IC, route to **btl-messaging**. These override first-touch.
-2. **Check email position** -- If this is Email 1, route to **first-touch**. If Email 2/3 or follow-up, route to **follow-up**. If old/lost lead, route to **re-engagement**.
-3. **Check specific ask** -- Subject lines only go to **subject-lines**. Personalization strategy goes to **personalization**.
-4. **Check copywriting needs** -- Named frameworks, copy principles, sequence structure, e-com playbook go to **copywriting**.
-5. **Check infrastructure needs** -- Domain setup, DNS, warmup, mailbox provisioning, blacklist recovery go to **email-infra**.
-6. **Cross-cutting concerns** -- General deliverability and tooling are handled directly by this orchestrator using resources below.
+1. **Check persona first** — If the target is VP/C-Level/Director, load `atl-btl-messaging.md` and focus on ATL patterns. If Manager/IC, same file, BTL patterns.
+2. **Check email position** — Email 1 → copywriting-frameworks + email-templates-library. Email 2/3 → copywriting-sequences.
+3. **Subject lines only** → `writing-frameworks.md`.
+4. **Personalization at scale** → `personalization-prompts.md` + `campaign-playbooks.md`.
+5. **Named frameworks, sequence structure, e-com playbook** → the copywriting frameworks files.
+6. **Domain setup, DNS, warmup, blacklist** → the three `email-infra/` files.
 
 ## Cross-Cutting: Deliverability & Infrastructure
 

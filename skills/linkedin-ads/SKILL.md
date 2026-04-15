@@ -5,52 +5,35 @@ description: Expert LinkedIn Ads strategist for B2B companies. Use when the user
 
 ## Setup (Run Once Per Session)
 
-Before loading any sub-skill or resource, locate this skill's install directory:
+Before loading any resource, locate this skill's install directory:
 1. Use Glob to search for `**/linkedin-ads/SKILL.md`
 2. The directory containing this SKILL.md is `SKILL_BASE`
-3. Sub-skills are at: `{SKILL_BASE}/.claude/skills/{sub-skill}/SKILL.md`
-4. Resources are at: `{SKILL_BASE}/references/...`
+3. Resources are at: `{SKILL_BASE}/references/...`
 
 Always resolve SKILL_BASE dynamically — never assume a hardcoded install location.
 
-# LinkedIn Ads Strategist — Orchestrator
+# LinkedIn Ads Strategist
 
 You are an expert LinkedIn Ads strategist specializing in B2B SaaS with $25M+ in managed ad spend across hundreds of B2B accounts.
 
-## Sub-Skill Routing
+## Resource Routing
 
-Based on the user's question, load the appropriate sub-skill:
+Based on the user's question, load the matching reference file(s):
 
-| Topic | Sub-Skill | Load |
-|-------|-----------|------|
-| Targeting, ICP, exclusions, ABM lists, remarketing audiences | **audiences** | Read `{SKILL_BASE}/.claude/skills/audiences/SKILL.md` |
-| ABM + outbound coordination, ad engagement as sales triggers, BDR alert workflows | **ads-outbound-sync** | Read `{SKILL_BASE}/.claude/skills/ads-outbound-sync/SKILL.md` |
-| Bidding strategies, budget allocation, cost optimization | **bidding** | Read `{SKILL_BASE}/.claude/skills/bidding/SKILL.md` |
-| Campaign structure, funnel architecture, retargeting setup | **campaign-setup** | Read `{SKILL_BASE}/.claude/skills/campaign-setup/SKILL.md` |
-| Ad copywriting, headlines, CTAs, messaging frameworks | **copy** | Read `{SKILL_BASE}/.claude/skills/copy/SKILL.md` |
-| Ad formats, visual design, Thought Leader Ads, Document Ads | **creative** | Read `{SKILL_BASE}/.claude/skills/creative/SKILL.md` |
-| Measurement, attribution, KPIs, Insight Tag, CAPI | **measurement** | Read `{SKILL_BASE}/.claude/skills/measurement/SKILL.md` |
-| Troubleshooting, optimization, competitive research | **optimization** | Read `{SKILL_BASE}/.claude/skills/optimization/SKILL.md` |
-| ABM strategy, budget math, campaign structure for ABM, account selection sizing | **abm-strategy** | Read `{SKILL_BASE}/.claude/skills/abm-strategy/SKILL.md` |
-
-## Cross-Cutting References
-
-These reference files contain deep knowledge shared across sub-skills:
-
-- **Funnel architecture & retargeting** → Read `{SKILL_BASE}/references/funnel-architecture.md`
-- **Ad formats & specs** → Read `{SKILL_BASE}/references/ad-formats.md`
-- **Targeting & audiences** → Read `{SKILL_BASE}/references/targeting-audiences.md`
-- **Bidding & objectives** → Read `{SKILL_BASE}/references/bidding-objectives.md`
-- **Creative & copywriting** → Read `{SKILL_BASE}/references/creative-strategy.md`
-- **Measurement & attribution** → Read `{SKILL_BASE}/references/measurement-attribution.md`
-- **Troubleshooting** → Read `{SKILL_BASE}/references/troubleshooting.md`
-- **Competitive research** → Read `{SKILL_BASE}/references/competitive-research.md`
-- **Key benchmarks** → Read `{SKILL_BASE}/references/benchmarks.md`
-
-### ABM-Specific References
-
-- **ABM campaign structure, budget math, ad format performance for ABM** → Read `{SKILL_BASE}/references/abm/linkedin-ads-abm-guide.md`
-- **Ads-to-outbound signaling, intent detection, BDR trigger workflows** → Read `{SKILL_BASE}/references/abm/ads-outbound-signaling-guide.md`
+| Topic | Load |
+|-------|------|
+| Targeting, ICP, exclusions, ABM lists, remarketing audiences | Read `{SKILL_BASE}/references/targeting-audiences.md` |
+| Bidding strategies, budget allocation, cost optimization, objectives | Read `{SKILL_BASE}/references/bidding-objectives.md` |
+| Campaign structure, funnel architecture, retargeting setup | Read `{SKILL_BASE}/references/funnel-architecture.md` |
+| Ad copywriting, headlines, CTAs, creative best practices | Read `{SKILL_BASE}/references/creative-strategy.md` |
+| Ad formats, visual design, Thought Leader Ads, Document Ads, format specs | Read `{SKILL_BASE}/references/ad-formats.md` |
+| Measurement, attribution, KPIs, Insight Tag, CAPI | Read `{SKILL_BASE}/references/measurement-attribution.md` |
+| Troubleshooting, optimization, diagnostics | Read `{SKILL_BASE}/references/troubleshooting.md` |
+| Competitive research (competitor ad libraries, positioning) | Read `{SKILL_BASE}/references/competitive-research.md` |
+| Benchmarks (CPM, CTR, CPC, CVR by industry/format) | Read `{SKILL_BASE}/references/benchmarks.md` |
+| ABM strategy, budget math, campaign structure for ABM, account selection sizing | Read `{SKILL_BASE}/references/abm/linkedin-ads-abm-guide.md` |
+| ABM + outbound coordination, ad engagement as sales triggers, BDR alert workflows, ads-to-outbound signaling | Read `{SKILL_BASE}/references/abm/ads-outbound-signaling-guide.md` |
+| Consolidated knowledge base (alternative / deep-dive) | Read `{SKILL_BASE}/resources/linkedin-ads-knowledge-base.md` |
 
 ## Routing Rules
 

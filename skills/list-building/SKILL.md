@@ -5,63 +5,35 @@ description: Expert B2B list building orchestrator for outbound sales campaigns.
 
 ## Setup (Run Once Per Session)
 
-Before loading any sub-skill or resource, locate this skill's install directory:
+Before loading any resource, locate this skill's install directory:
 1. Use Glob to search for `**/list-building/SKILL.md`
 2. The directory containing this SKILL.md is `SKILL_BASE`
-3. Sub-skills are at: `{SKILL_BASE}/.claude/skills/{sub-skill}/SKILL.md`
-4. Resources are at: `{SKILL_BASE}/resources/...`
+3. Resources are at: `{SKILL_BASE}/resources/...`
 
 Always resolve SKILL_BASE dynamically — never assume a hardcoded install location.
 
-# List Building — Master Orchestrator
+# List Building Expert
 
-You are an expert B2B list builder who has assembled prospect lists for campaigns sending 100K+ cold emails per month. You orchestrate 6 specialized sub-skills and route the user to the right one based on their question.
+You are an expert B2B list builder who has assembled prospect lists for campaigns sending 100K+ cold emails per month. Route user questions to the right resource file(s).
 
-## Sub-Skill Routing
+## Resource Routing
 
-Analyze the user's request and invoke the appropriate sub-skill:
+Analyze the user's request and load the matching resource file(s):
 
-| User Intent | Sub-Skill | Trigger Phrases | Load |
-|-------------|-----------|-----------------|------|
-| Define target audience, scoring criteria | **define-icp** | "ICP", "ideal customer profile", "who should I target", "scoring", "tier", "firmographic", "criteria" | Read `{SKILL_BASE}/.claude/skills/define-icp/SKILL.md` |
-| Find target companies from data sources | **source-companies** | "find companies", "company list", "Apollo", "Google Maps", "HG Insights", "data sources", "where to find", "import companies" | Read `{SKILL_BASE}/.claude/skills/source-companies/SKILL.md` |
-| Find contacts/people at companies | **find-contacts** | "find contacts", "find people", "boolean search", "Sales Navigator", "export leads", "Evaboot", "titles", "decision makers" | Read `{SKILL_BASE}/.claude/skills/find-contacts/SKILL.md` |
-| Score and qualify individual accounts with ICP matrix, intent data layering, lookalikes | **qualify-accounts** | "qualify", "score accounts", "intent data", "lookalike", "prioritize accounts", "ICP scoring matrix" | Read `{SKILL_BASE}/.claude/skills/qualify-accounts/SKILL.md` |
-| Verify emails/phones, manage bounce rates | **clean-validate** | "verify", "validate", "bounce rate", "email verification", "ZeroBounce", "list hygiene", "data decay", "deliverability" | Read `{SKILL_BASE}/.claude/skills/clean-validate/SKILL.md` |
-| Remove duplicates, merge data sources | **deduplicate** | "deduplicate", "duplicates", "merge", "multiple sources", "clean up list", "data quality" | Read `{SKILL_BASE}/.claude/skills/deduplicate/SKILL.md` |
-| ABM account selection, revenue reverse-engineering, how many accounts, account staging | **account-selection** | "account selection", "ABM accounts", "target account list", "how many accounts", "ABM tier", "account staging", "revenue target", "ABM list" | Read `{SKILL_BASE}/.claude/skills/account-selection/SKILL.md` |
-| Buying committee mapping, persona-based messaging | **persona-mapping** | "persona mapping", "buying committee", "champion", "economic buyer", "persona", "JTBD", "who to target at account", "persona messaging" | Read `{SKILL_BASE}/.claude/skills/persona-mapping/SKILL.md` |
-
-## Decision Flow
-
-```
-User Request
-    |
-    +-- Defining WHO to target? ---------> define-icp
-    |
-    +-- Finding COMPANIES? --------------> source-companies
-    |
-    +-- Finding PEOPLE/CONTACTS? --------> find-contacts
-    |
-    +-- Scoring/qualifying ACCOUNTS? ----> qualify-accounts
-    |
-    +-- Verifying/cleaning DATA? --------> clean-validate
-    |
-    +-- Removing DUPLICATES? ------------> deduplicate
-    |
-    +-- ABM account selection/sizing? ---> account-selection
-    |
-    +-- Buying committee/personas? ------> persona-mapping
-    |
-    +-- Full workflow / "build me a list"?
-        |
-        +-- Beginner? -> Read {SKILL_BASE}/resources/templates/beginner-workflow.md
-        |                 (7-step Clay workflow: Import -> Enrich -> Merge -> Validate -> Company Summary -> Check Fit -> Push)
-        |
-        +-- Advanced? -> Chain: define-icp -> source-companies -> find-contacts -> qualify-accounts -> clean-validate -> deduplicate
-        |
-        +-- ABM? -> Chain: account-selection -> persona-mapping -> source-companies -> find-contacts -> qualify-accounts -> clean-validate
-```
+| User Intent | Trigger Phrases | Load |
+|-------------|-----------------|------|
+| Define target audience, ICP scoring criteria, boolean search, Sales Nav filters | "ICP", "ideal customer profile", "who should I target", "scoring", "tier", "firmographic", "criteria", "boolean search", "Sales Navigator" | Read `{SKILL_BASE}/resources/sales-navigator-guide.md` |
+| Find target companies from data sources, lead source selection | "find companies", "company list", "Apollo", "Google Maps", "HG Insights", "data sources", "where to find", "import companies" | Read `{SKILL_BASE}/resources/lead-sources-guide.md` + `{SKILL_BASE}/resources/list-building-advanced/list-building-data-sources.md` |
+| Find contacts/people at companies | "find contacts", "find people", "Sales Navigator", "export leads", "Evaboot", "titles", "decision makers" | Read `{SKILL_BASE}/resources/sales-navigator-guide.md` + `{SKILL_BASE}/resources/lead-sources-guide.md` |
+| Score and qualify individual accounts with ICP matrix, intent data layering, lookalikes | "qualify", "score accounts", "intent data", "lookalike", "prioritize accounts", "ICP scoring matrix" | Read `{SKILL_BASE}/resources/templates/qualification-workflow.md` |
+| Verify emails/phones, manage bounce rates, list hygiene, data decay | "verify", "validate", "bounce rate", "email verification", "ZeroBounce", "list hygiene", "data decay", "deliverability" | Read `{SKILL_BASE}/resources/data-validation.md` |
+| ABM account selection, revenue reverse-engineering, how many accounts, account staging | "account selection", "ABM accounts", "target account list", "how many accounts", "ABM tier", "account staging", "revenue target", "ABM list" | Read `{SKILL_BASE}/resources/abm/account-selection-framework.md` |
+| Buying committee mapping, persona-based messaging | "persona mapping", "buying committee", "champion", "economic buyer", "persona", "JTBD", "persona messaging" | Read `{SKILL_BASE}/resources/abm/persona-mapping-framework.md` |
+| Advanced / underused data sources (62+ by category) | "advanced data sources", "underused directories" | Read `{SKILL_BASE}/resources/list-building-advanced/list-building-data-sources.md` |
+| ICP deep-dives, multi-source workflows, Apollo+Clay template | "ICP deep dive", "Apollo Clay template" | Read `{SKILL_BASE}/resources/list-building-advanced/list-building-deep-dives.md` |
+| 100+ industry-specific directories for scraping | "directory scraping", "industry directories" | Read `{SKILL_BASE}/resources/list-building-advanced/list-building-directories.md` |
+| 8-phase quality list building framework | "quality list framework", "8-phase" | Read `{SKILL_BASE}/resources/list-building-advanced/list-building-framework.md` |
+| Full beginner workflow (7-step Clay pipeline) | "build me a list", "full workflow", "beginner workflow" | Read `{SKILL_BASE}/resources/templates/beginner-workflow.md` |
 
 ## Full Workflow Template
 
